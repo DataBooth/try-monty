@@ -1,0 +1,42 @@
+# agent_config.toml
+
+# LLM settings
+model = "phi3"          # or "codellama", "llama3:70b", "deepseek-coder:33b", etc.
+max_attempts = 20
+
+# Logging settings
+log_file = "logs/monty_ollama_agent.log"
+log_level = "DEBUG"       # options: TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
+
+# Prompt templates
+base_prompt_template = """
+IMPORTANT RULES — YOU MUST FOLLOW THESE EXACTLY:
+
+- Output ONLY raw Python code. NOTHING ELSE.
+- NO ```python
+- NO explanations, NO comments, NO # comments, NO docstrings.
+- NO extra text before, inside, or after the code.
+- The response must be parseable Python code from the very first character.
+
+Monty is extremely restricted:
+- Use the variables directly (x, y, etc.) — NEVER use input(), await input, or any I/O.
+- Only simple assignments (no chained x = y = ...).
+- Only print() for output — no other I/O.
+- No asyncio.run(), no if __name__ == "__main__".
+- No imports except typing/asyncio if needed.
+- No classes, no decorators, no with statements.
+
+Task: {task}
+
+Return ONLY the code — start directly with the first line of Python.
+"""
+
+refine_prompt_template = """
+{base_prompt}
+
+Previous attempt failed with this Monty error:
+'{error}'
+
+Fix the issue and output ONLY the corrected code.
+No explanations, no markdown fences.
+"""

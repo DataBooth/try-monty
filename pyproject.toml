@@ -1,0 +1,11 @@
+[project]
+name = "try-monty"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "loguru>=0.7.3",
+    "ollama>=0.6.1",
+    "pydantic-monty>=0.0.4",
+]
