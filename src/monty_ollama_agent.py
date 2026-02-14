@@ -20,7 +20,7 @@ class SelfImprovingAgent:
         refine_prompt_template (str): Template for refinement prompts after errors.
     """
 
-    def __init__(self, config_path: str = "agent_config.toml"):
+    def __init__(self, config_path: str = "config/agent_config.toml"):
         """
         Initializes the SelfImprovingAgent with configuration from a TOML file.
 
@@ -32,14 +32,27 @@ class SelfImprovingAgent:
             ValueError: If the config is invalid or missing required keys.
         """
         self.config = self._load_config(config_path)
-        self.base_prompt_template = self.config.get("base_prompt_template", (
-            "Write a simple, Monty-compatible Python snippet (no classes, no imports, basic functions/loops/math only) "
-            "for this task: {task}. Output ONLY the code, no explanations."
-        ))
+        # Extract prompt pieces
+        self.universal_rules = self.config.get("prompts", {}).get("universal_rules", "")
+        self.monty_constraints = self.config.get("prompts", {}).get("monty_constraints", "")
+
         self.refine_prompt_template = self.config.get("refine_prompt_template", (
             "{base_prompt}\nPrevious attempt failed with: '{error}'. Fix it and output ONLY the corrected code."
         ))
         logger.add(self.config.get("log_file", "agent.log"), level=self.config.get("log_level", "INFO"))
+
+    def _generate_task_guidance(self, task: str, input_keys: list[str]) -> str:
+        var_list = ", ".join(f"`{k}`" for k in sorted(input_keys))
+        return f"""
+Task: {task}
+
+Available input variables: {var_list}
+- Use ONLY these variables — do NOT hard-code any values
+- Do NOT call input(), eval(), or any I/O functions
+- Compute the answer and assign it to variable 'result'
+
+Output ONLY the code.
+"""
 
     @staticmethod
     def _load_config(config_path: str) -> dict:
@@ -132,8 +145,12 @@ class SelfImprovingAgent:
             logger.error(f"Ollama error: {e}")
             raise
 
+
+
+
     def run(self, task: str, inputs: dict) -> Any:
-        base_prompt = self.base_prompt_template.format(task=task)
+        task_guidance = self._generate_task_guidance(task, list(inputs.keys()))
+        base_prompt = f"{self.universal_rules}\n\n{self.monty_constraints}\n\n{task_guidance}"
         prompt = base_prompt
         max_attempts = self.config["max_attempts"]
 
