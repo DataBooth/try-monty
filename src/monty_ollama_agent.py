@@ -35,9 +35,9 @@ class SelfImprovingAgent:
         # Extract prompt pieces
         self.universal_rules = self.config.get("prompts", {}).get("universal_rules", "")
         self.monty_constraints = self.config.get("prompts", {}).get("monty_constraints", "")
-
+        self.last_attempt = None
         self.refine_prompt_template = self.config.get("refine_prompt_template", (
-            "{base_prompt}\nPrevious attempt failed with: '{error}'. Fix it and output ONLY the corrected code."
+            "{base_prompt}\nPrevious attempt failed with: '{error}'. Fix it and output ONLY the corrected code. The previous unsuccessful code was: \n{last_attempt}"
         ))
         logger.add(self.config.get("log_file", "agent.log"), level=self.config.get("log_level", "INFO"))
 
@@ -159,9 +159,10 @@ Output ONLY the code.
             
             generated_code = self.llm_generate(prompt)
             generated_code = self.clean_code(generated_code)
-            
+            self.last_attempt = generated_code
+
             print(f"Attempt {attempt}:\n{generated_code}\n")   # debug
-            logger.info(f"Generated code:\n{generated_code}")
+            logger.info(f"Attempt {attempt}:\n{generated_code}\n")
             
             try:
                 m = monty.Monty(generated_code, inputs=list(inputs.keys()))
@@ -185,7 +186,7 @@ Output ONLY the code.
                 logger.warning(f"Monty error on attempt {attempt}: {e}")
                 prompt = self.refine_prompt_template.format(
                     base_prompt=base_prompt, 
-                    error=str(e)
+                    error=str(e), last_attempt=self.last_attempt
                 )
 
         # If loop completes without success

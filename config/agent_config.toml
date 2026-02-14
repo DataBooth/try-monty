@@ -1,5 +1,5 @@
-# model = "phi3"
-model = "codellama:34b"
+model = "phi3"
+# model = "codellama:34b"
 max_attempts = 20
 log_file = "monty_ollama_agent.log"
 log_level = "DEBUG"
