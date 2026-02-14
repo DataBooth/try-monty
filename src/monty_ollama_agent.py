@@ -211,6 +211,6 @@ refine_prompt_template = "{base_prompt}\\nPrevious attempt failed with: '{error}
         logger.info(f"Created sample config at {config_path}")
 
     agent = SelfImprovingAgent(config_path=config_path)
-    task = "Add two numbers x and y, then multiply by 2"
-    inputs = {"x": 5, "y": 7}
+    task = "Find the roots of the equation a*x^2 + b*x + c"
+    inputs = {"a": 5, "b": 7, "c": 10}
     agent.run(task, inputs)
