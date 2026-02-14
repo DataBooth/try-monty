@@ -100,7 +100,15 @@ Output ONLY the code.
                 continue  # skip empty
 
             # Skip common junk prefixes
-            if stripped.lower().startswith(('```', 'python', 'py', 'assistant:', 'here is')):
+            low = stripped.lower()
+            if low.startswith('```'):
+                # if we've already started collecting code, a closing fence
+                # should stop collection so trailing prose isn't captured
+                if in_code:
+                    break
+                continue
+
+            if low.startswith(('python', 'py', 'assistant:', 'here is')):
                 continue
 
             # Once we see real code, start collecting
@@ -146,8 +154,6 @@ Output ONLY the code.
             raise
 
 
-
-
     def run(self, task: str, inputs: dict) -> Any:
         task_guidance = self._generate_task_guidance(task, list(inputs.keys()))
         base_prompt = f"{self.universal_rules}\n\n{self.monty_constraints}\n\n{task_guidance}"
@@ -161,8 +167,8 @@ Output ONLY the code.
             generated_code = self.clean_code(generated_code)
             self.last_attempt = generated_code
 
-            print(f"Attempt {attempt}:\n{generated_code}\n")   # debug
-            logger.info(f"Attempt {attempt}:\n{generated_code}\n")
+            logger.debug(f"Attempt {attempt}:\n{generated_code}\n")
+            logger.info(f"Attempt {attempt} completed")
             
             try:
                 m = monty.Monty(generated_code, inputs=list(inputs.keys()))
@@ -195,21 +201,13 @@ Output ONLY the code.
 
 # Example usage
 if __name__ == "__main__":
-    # Create a sample config file if it doesn't exist (for demo purposes)
     config_path = "config/agent_config.toml"
     if not Path(config_path).exists():
-        sample_config = """
-model = "llama3"
-max_attempts = 5
-log_file = "agent.log"
-log_level = "DEBUG"
-
-base_prompt_template = "Write a simple, Monty-compatible Python snippet (no classes, no imports, basic functions/loops/math only) for this task: {task}. Output ONLY the code, no explanations."
-refine_prompt_template = "{base_prompt}\\nPrevious attempt failed with: '{error}'. Fix it and output ONLY the corrected code."
-"""
-        with open(config_path, "w") as f:
-            f.write(sample_config)
-        logger.info(f"Created sample config at {config_path}")
+        logger.warning(
+            "Config not found at %s — to create a sample config run: python examples/create_sample_config.py",
+            config_path,
+        )
+        raise SystemExit(1)
 
     agent = SelfImprovingAgent(config_path=config_path)
     task = "Find the roots of the equation a*x^2 + b*x + c"
