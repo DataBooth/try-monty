@@ -1,0 +1,191 @@
+# Configuration for BenchmarkRunner – tasks, agent variants, runner behavior
+
+[runner]
+timeout_per_task = 300.0
+verbose = true
+output_csv = "benchmark_results_{date}.csv"
+max_workers = 4
+
+# Agent variants to compare
+[[configs]]
+name = "codellama-13b-12it"
+model = "codellama:13b"
+max_attempts = 12
+provider = "ollama"
+
+[[configs]]
+name = "codellama-34b-8it"
+model = "codellama:34b"
+max_attempts = 8
+provider = "ollama"
+
+[[configs]]
+name = "deepseek-coder-6.7b-15it"
+model = "deepseek-coder:6.7b"
+max_attempts = 15
+provider = "ollama"
+
+# ────────────────────────────────────────────────
+# Tasks (with multiple test cases where useful)
+# ────────────────────────────────────────────────
+
+[[tasks]]
+name = "Simple addition"
+description = "Add two numbers a and b"
+tests = [
+  { inputs = { a = 5, b = 3 }, expected = 8 },
+  { inputs = { a = 0, b = 0 }, expected = 0 },
+  { inputs = { a = -2, b = 7 }, expected = 5 }
+]
+
+[[tasks]]
+name = "String concatenation with space"
+description = "Concatenate s1 and s2 with a single space between"
+tests = [
+  { inputs = { s1 = "Hello", s2 = "World" }, expected = "Hello World" },
+  { inputs = { s1 = "", s2 = "test" }, expected = " test" },
+  { inputs = { s1 = "abc", s2 = "" }, expected = "abc " }
+]
+
+[[tasks]]
+name = "List sum"
+description = "Compute the sum of all numbers in list nums"
+tests = [
+  { inputs = { nums = [1, 2, 3, 4, 5] }, expected = 15 },
+  { inputs = { nums = [] }, expected = 0 },
+  { inputs = { nums = [-1, 0, 1] }, expected = 0 }
+]
+
+[[tasks]]
+name = "Count vowels (case insensitive)"
+description = "Count vowels (a,e,i,o,u) in string text, ignore case"
+tests = [
+  { inputs = { text = "The quick brown fox" }, expected = 5 },
+  { inputs = { text = "AEIOU" }, expected = 5 },
+  { inputs = { text = "" }, expected = 0 },
+  { inputs = { text = "rhythm" }, expected = 0 }
+]
+
+[[tasks]]
+name = "List median"
+description = "Compute the median of a list of numbers called data (return float or None for empty list)"
+tests = [
+  { inputs = { data = [7, 3, 1, 9, 5] }, expected = 5.0 },
+  { inputs = { data = [1, 2, 3] }, expected = 2.0 },
+  { inputs = { data = [] } },                  # ← omit expected → means expected=None
+  { inputs = { data = [42] }, expected = 42.0 },
+  { inputs = { data = [1.5, 2.5, 3.5] }, expected = 2.5 },
+  { inputs = { data = [10, 20, 30, 40, 50, 60] }, expected = 35.0 }
+]
+
+[[tasks]]
+name = "Remove duplicates preserving order"
+description = "Return new list with duplicates removed, preserve original order"
+tests = [
+  { inputs = { nums = [1, 2, 2, 3, 1, 4, 5, 3] }, expected = [1, 2, 3, 4, 5] },
+  { inputs = { nums = [] }, expected = [] },
+  { inputs = { nums = [5, 5, 5] }, expected = [5] }
+]
+
+[[tasks]]
+name = "Valid parentheses"
+description = "Check if string s has valid matching parentheses"
+tests = [
+  { inputs = { s = "()[]{}" }, expected = true },
+  { inputs = { s = "(]" }, expected = false },
+  { inputs = { s = "([)]" }, expected = false },
+  { inputs = { s = "" }, expected = true },
+  { inputs = { s = "(((" }, expected = false }
+]
+
+[[tasks]]
+name = "Longest common prefix"
+description = "Find longest common prefix among list of strings"
+tests = [
+  { inputs = { strs = ["flower","flow","flight"] }, expected = "fl" },
+  { inputs = { strs = ["dog","racecar","car"] }, expected = "" },
+  { inputs = { strs = [] }, expected = "" }
+]
+
+[[tasks]]
+name = "Climbing stairs ways"
+description = "Number of distinct ways to climb n stairs (1 or 2 steps at a time)"
+tests = [
+  { inputs = { n = 2 }, expected = 2 },
+  { inputs = { n = 3 }, expected = 3 },
+  { inputs = { n = 4 }, expected = 5 },
+  { inputs = { n = 1 }, expected = 1 }
+]
+
+[[tasks]]
+name = "House robber max loot"
+description = "Max amount you can rob from houses without robbing adjacent ones"
+tests = [
+  { inputs = { nums = [1,2,3,1] }, expected = 4 },
+  { inputs = { nums = [2,7,9,3,1] }, expected = 12 },
+  { inputs = { nums = [1] }, expected = 1 },
+  { inputs = { nums = [] }, expected = 0 }
+]
+
+[[tasks]]
+name = "Edit distance (Levenshtein)"
+description = "Minimum edits to transform word1 to word2"
+tests = [
+  { inputs = { word1 = "kitten", word2 = "sitting" }, expected = 3 },
+  { inputs = { word1 = "horse", word2 = "ros" }, expected = 3 },
+  { inputs = { word1 = "", word2 = "abc" }, expected = 3 }
+]
+
+[[tasks]]
+name = "Longest increasing subsequence length"
+description = "Length of longest strictly increasing subsequence"
+tests = [
+  { inputs = { nums = [10,9,2,5,3,7,101,18] }, expected = 4 },
+  { inputs = { nums = [0,1,0,3,2,3] }, expected = 3 },
+  { inputs = { nums = [7,7,7,7,7] }, expected = 1 }
+]
+
+[[tasks]]
+name = "N-Queens solutions count"
+description = "Number of ways to place n queens on n×n board with no attacks"
+tests = [
+  { inputs = { n = 4 }, expected = 2 },
+  { inputs = { n = 5 }, expected = 10 },
+  { inputs = { n = 6 }, expected = 4 },
+  { inputs = { n = 1 }, expected = 1 }
+]
+
+[[tasks]]
+name = "Word Break II (all segmentations)"
+description = "All possible ways to break string s into words from wordDict"
+tests = [
+  { inputs = { s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"] }, expected = ["cats and dog","cat sand dog"] },
+  { inputs = { s = "pineapplepenapple", wordDict = ["apple","pen","applepen","pine","pineapple"] }, expected = ["pine apple pen apple","pineapple pen apple","pine applepen apple"] }
+]
+
+[[tasks]]
+name = "Trapping rain water"
+description = "How much water can be trapped in elevation map"
+tests = [
+  { inputs = { height = [0,1,0,2,1,0,1,3,2,1,2,1] }, expected = 6 },
+  { inputs = { height = [4,2,0,3,2,5] }, expected = 9 },
+  { inputs = { height = [0,0,0] }, expected = 0 }
+]
+
+[[tasks]]
+name = "Sudoku validator (partial)"
+description = "Check if 9x9 Sudoku grid is valid so far (no conflicts in filled cells)"
+tests = [
+  { inputs = { grid = [
+      [5,3,0,0,7,0,0,0,0],
+      [6,0,0,1,9,5,0,0,0],
+      [0,9,8,0,0,0,0,6,0],
+      [8,0,0,0,6,0,0,0,3],
+      [4,0,0,8,0,3,0,0,1],
+      [7,0,0,0,2,0,0,0,6],
+      [0,6,0,0,0,0,2,8,0],
+      [0,0,0,4,1,9,0,0,5],
+      [0,0,0,0,8,0,0,7,9]
+    ] }, expected = true },
+  { inputs = { grid = [[1,2,3],[4,5,6],[7,8,1]] }, expected = false }  # duplicate 1 in column
+]

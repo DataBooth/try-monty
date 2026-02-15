@@ -1,37 +1,58 @@
-model = "phi3"
-# model = "codellama:34b"
-max_attempts = 20
-log_file = "monty_ollama_agent.log"
-log_level = "DEBUG"
+# Configuration for SelfImprovingMontyAgent
+
+model = "phi3"         # Best choice for code + format obedience; alternatives: deepseek-coder:33b, qwen2.5-coder:32b
+max_attempts = 20               # Max refinement loops before giving up
+
+log_file = "agent.log"
+log_level = "INFO"              # DEBUG for verbose, INFO for normal, WARNING for quiet
 
 [prompts]
 universal_rules = """
 IMPORTANT — OUTPUT FORMAT RULES (must be followed exactly):
 - Output ONLY raw Python code. NOTHING ELSE.
-- NO markdown fences (no ```python, no ```, no backticks)
-- NO explanations, NO comments, NO # lines, NO docstrings
+- NO markdown fences (no ```python, no ```, no backticks of any kind)
+- NO explanations, NO comments, NO # lines, NO docstrings, NO prose
 - NO extra text before, inside or after the code
-- The first character of your response must be valid Python
+- The very first character of your response must be valid Python (variable, def, etc.)
 - End your code by assigning the final answer to a variable called 'result'
 - You may use print(result) or print(...) for debugging, but 'result' is required
+- Do NOT use input(), eval(), open(), os, sys, or any I/O except print()
 """
 
 monty_constraints = """
 Monty supports ONLY:
-- variables, assignment, math ops (+ - * / % **)
+- variables, assignment, basic math (+ - * / % ** //)
 - if/elif/else
-- for/while loops (simple)
+- for/while loops (simple ranges or over lists)
 - def functions (sync or async)
-- async/await (limited asyncio)
-- type hints (typing)
+- async/await (limited asyncio support)
+- type hints (from typing)
 - print()
-- list/dict/tuple/set literals & operations
-- return
+- list/dict/tuple/set literals and basic operations
+- return statements
 
-Forbidden:
-- input(), open(), sys, any I/O except print()
-- classes, decorators, with, match/case
-- imports except typing/asyncio (limited)
+Forbidden in Monty:
+- input(), open(), sys.stdin, any real I/O except print()
+- classes, @decorators, context managers (with)
+- match/case
+- imports except: from typing import ..., import asyncio (limited)
 - __name__ == "__main__", asyncio.run()
-- chained assignment (x = y = 5)
+- chained assignment like x = y = 5
+- any host access (filesystem, network, env) except via registered external functions
+
+Code must be safe, efficient, and respect resource limits (avoid deep recursion).
+"""
+
+refine_prompt_template = """
+{base_prompt}
+
+Previous attempt failed with this error:
+{error}
+
+Previous code that was attempted:
+{last_attempt}
+
+Fix the issue completely and output ONLY the corrected code.
+No explanations, no markdown, no comments, no fences.
+Start directly with valid Python code.
 """
