@@ -2,7 +2,6 @@
 
 model = "phi3"         # Best choice for code + format obedience; alternatives: deepseek-coder:33b, qwen2.5-coder:32b
 max_attempts = 20               # Max refinement loops before giving up
-
 log_file = "agent.log"
 log_level = "INFO"              # DEBUG for verbose, INFO for normal, WARNING for quiet
 
